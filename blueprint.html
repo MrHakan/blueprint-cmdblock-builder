@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blueprint Command Builder | Command Block Assembler</title>
+    <link rel="icon" href="https://styles.redditmedia.com/t5_6aviyc/styles/profileIcon_msenduashsw81.jpg"
+        type="image/png">
+    <link rel="stylesheet" href="/styles/blueprint.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="blueprint-container">
+        <!-- Toolbar -->
+        <header class="toolbar">
+            <h1>Blueprint Command Builder</h1>
+            <div class="toolbar-buttons">
+                <button class="toolbar-btn" onclick="blueprintEditor.saveGraph()">
+                    <i class="fas fa-save"></i> Save
+                </button>
+                <button class="toolbar-btn" onclick="blueprintEditor.loadGraph()">
+                    <i class="fas fa-folder-open"></i> Load
+                </button>
+                <button class="toolbar-btn" onclick="blueprintEditor.clearCanvas()">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+                <button class="toolbar-btn primary" onclick="blueprintEditor.exportCommands()">
+                    <i class="fas fa-file-export"></i> Export to CBA
+                </button>
+            </div>
+        </header>
+
+        <!-- Sidebar: Node Palette -->
+        <aside class="node-palette" id="nodePalette">
+            <div class="palette-header">Node Library</div>
+            <input type="text" class="palette-search" placeholder="Search nodes..." id="nodeSearch">
+            <div id="paletteContent">
+                <!-- Palette categories will be dynamically generated -->
+            </div>
+        </aside>
+
+        <!-- Canvas Area -->
+        <main class="canvas-container" id="canvasContainer">
+            <div class="canvas-grid" id="canvasGrid"></div>
+            <svg id="connectionsSvg">
+                <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6"
+                        orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#fff" />
+                    </marker>
+                </defs>
+            </svg>
+            <div id="nodeLayer"></div>
+            <div class="minimap" id="minimap"></div>
+        </main>
+
+        <!-- Sidebar: Properties -->
+        <aside class="properties-panel" id="propertiesPanel">
+            <div class="properties-header">
+                <i class="fas fa-sliders-h"></i> Node Properties
+            </div>
+            <div id="propertiesContent">
+                <div class="empty-state">Select a node to edit properties</div>
+            </div>
+        </aside>
+
+        <!-- Output Panel -->
+        <footer class="output-panel">
+            <div class="output-tabs">
+                <div class="output-tab active" data-tab="preview">Generated Commands</div>
+                <div class="output-tab" data-tab="log">Compiler Output</div>
+            </div>
+            <div class="output-content">
+                <textarea id="commandOutput" readonly
+                    placeholder="Your command graph will be compiled here..."></textarea>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/scripts/blueprint/asset-data.js"></script>
+    <script src="/scripts/blueprint/nodes.js"></script>
+    <script src="/scripts/blueprint/compiler.js"></script>
+    <script src="/scripts/blueprint/node-editor.js"></script>
+    <script>
+        // Initialize the editor when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.blueprintEditor = new BlueprintEditor('canvasContainer');
+        });
+    </script>
+</body>
+
+</html>
