@@ -17,7 +17,6 @@ const NodeTypes = {
     SETBLOCK: 'setblock',
     FILL: 'fill',
     KILL: 'kill',
-    KILL: 'kill',
     CUSTOM: 'custom',
 
     // New 1.21+ Commands
@@ -41,7 +40,10 @@ const NodeTypes = {
     IF_CONDITION: 'if_condition',
     LOOP: 'loop',
     VARIABLE_GET: 'variable_get',
-    VARIABLE_SET: 'variable_set'
+    VARIABLE_SET: 'variable_set',
+
+    // 1.21 Data Components
+    DATA_COMPONENT: 'data_component'
 };
 
 const PinTypes = {
@@ -52,7 +54,8 @@ const PinTypes = {
     NUMBER: 'number',
     NBT: 'nbt',
     POSITION: 'position',
-    ITEM: 'item'
+    ITEM: 'item',
+    COMPONENT: 'component' // New pin type for data components
 };
 
 // Node category colors
@@ -114,12 +117,6 @@ const NodeDefinitions = {
         title: 'Sequence',
         category: 'execution',
         description: 'Execute multiple commands in order',
-        tooltip: `
-<h3>Sequence</h3>
-<p><strong>Logic:</strong> Splits the execution flow into multiple sequential branches.</p>
-<p><strong>Usage:</strong> Connect "Exec" input, then connect "Then 0", "Then 1", etc. to different command chains.</p>
-<p><strong>Example:</strong> Use to run initialization commands before a main loop.</p>
-`,
         tooltip: `
 <h3>Sequence</h3>
 <p><strong>Logic:</strong> Splits the execution flow into multiple sequential branches.</p>
@@ -234,6 +231,11 @@ const NodeDefinitions = {
         title: 'Effect',
         category: 'command',
         description: '/effect give/clear',
+        tooltip: `
+<h3>Effect</h3>
+<p><strong>Logic:</strong> Gives or clears status effects from entities.</p>
+<p><strong>New in 1.21:</strong> oozing, weaving, infested, wind_charged, raid_omen, trial_omen</p>
+`,
         inputs: [
             { name: 'Exec', type: PinTypes.EXEC },
             { name: 'Target', type: PinTypes.SELECTOR }
@@ -244,9 +246,20 @@ const NodeDefinitions = {
         ],
         properties: [
             { name: 'action', label: 'Action', type: 'select', options: ['give', 'clear'], default: 'give' },
-            { name: 'effect', label: 'Effect', type: 'text', default: 'minecraft:speed' },
-            { name: 'duration', label: 'Duration', type: 'number', default: 30 },
-            { name: 'amplifier', label: 'Amplifier', type: 'number', default: 0 }
+            {
+                name: 'effect', label: 'Effect', type: 'select', options: [
+                    'speed', 'slowness', 'haste', 'mining_fatigue', 'strength', 'instant_health',
+                    'instant_damage', 'jump_boost', 'nausea', 'regeneration', 'resistance',
+                    'fire_resistance', 'water_breathing', 'invisibility', 'blindness', 'night_vision',
+                    'hunger', 'weakness', 'poison', 'wither', 'health_boost', 'absorption',
+                    'saturation', 'glowing', 'levitation', 'luck', 'unluck', 'slow_falling',
+                    'conduit_power', 'dolphins_grace', 'bad_omen', 'hero_of_the_village', 'darkness',
+                    'oozing', 'weaving', 'infested', 'wind_charged', 'raid_omen', 'trial_omen'
+                ], default: 'speed'
+            },
+            { name: 'duration', label: 'Duration (sec)', type: 'number', default: 30 },
+            { name: 'amplifier', label: 'Amplifier', type: 'number', default: 0 },
+            { name: 'hideParticles', label: 'Hide Particles', type: 'checkbox', default: false }
         ]
     },
 
@@ -453,8 +466,8 @@ const NodeDefinitions = {
         description: 'Inflict damage on entities',
         tooltip: `
 <h3>Damage</h3>
-<p><strong>Logic:</strong> Deals damage to entities.</p>
-<p><strong>Usage:</strong> Target, Amount, Damage Type (optional).</p>
+<p><strong>Logic:</strong> Deals damage to entities with specific damage type.</p>
+<p><strong>New in 1.21:</strong> mace_smash, wind_charge damage types</p>
 `,
         inputs: [
             { name: 'Exec', type: PinTypes.EXEC },
@@ -466,7 +479,19 @@ const NodeDefinitions = {
         ],
         properties: [
             { name: 'amount', label: 'Amount', type: 'number', default: 1 },
-            { name: 'damageType', label: 'Type', type: 'text', default: 'minecraft:generic' },
+            {
+                name: 'damageType', label: 'Damage Type', type: 'select', options: [
+                    'generic', 'arrow', 'bad_respawn_point', 'cactus', 'campfire', 'cramming',
+                    'dragon_breath', 'drown', 'dry_out', 'ender_pearl', 'explosion', 'fall',
+                    'falling_anvil', 'falling_block', 'falling_stalactite', 'fireball', 'fireworks',
+                    'fly_into_wall', 'freeze', 'generic_kill', 'hot_floor', 'in_fire', 'in_wall',
+                    'indirect_magic', 'lava', 'lightning_bolt', 'mace_smash', 'magic', 'mob_attack',
+                    'mob_attack_no_aggro', 'mob_projectile', 'on_fire', 'out_of_world', 'outside_border',
+                    'player_attack', 'player_explosion', 'sonic_boom', 'spear', 'spit', 'stalagmite',
+                    'starve', 'sting', 'sweet_berry_bush', 'thorns', 'thrown', 'trident',
+                    'unattributed_fireball', 'wind_charge', 'wither', 'wither_skull'
+                ], default: 'generic'
+            },
             { name: 'attacker', label: 'Attacker (opt)', type: 'text', default: '' }
         ]
     },
@@ -477,8 +502,9 @@ const NodeDefinitions = {
         description: 'Modify entity attributes',
         tooltip: `
 <h3>Attribute</h3>
-<p><strong>Logic:</strong> Gets, Sets, or Modifies entity attributes (like Max Health, Speed).</p>
-<p><strong>Usage:</strong> Select Attribute and Action. For modifiers, provide UUID, Name, and Amount.</p>
+<p><strong>Logic:</strong> Gets, Sets, or Modifies entity attributes.</p>
+<p><strong>New in 1.21:</strong> scale, block_interaction_range, entity_interaction_range, step_height</p>
+<p><strong>Usage:</strong> Select Attribute and Action. For modifiers, provide ID, Name, and Amount.</p>
 `,
         inputs: [
             { name: 'Exec', type: PinTypes.EXEC },
@@ -489,12 +515,26 @@ const NodeDefinitions = {
             { name: 'Command', type: PinTypes.STRING }
         ],
         properties: [
-            { name: 'attribute', label: 'Attribute', type: 'minecraft_attribute', default: 'generic.max_health' },
+            {
+                name: 'attribute', label: 'Attribute', type: 'select', options: [
+                    // Legacy attributes (still use generic. prefix)
+                    'max_health', 'follow_range', 'knockback_resistance',
+                    'movement_speed', 'flying_speed', 'attack_damage',
+                    'attack_knockback', 'attack_speed', 'armor',
+                    'armor_toughness', 'luck',
+                    // 1.21+ attributes (no prefix)
+                    'scale', 'step_height', 'gravity',
+                    'safe_fall_distance', 'fall_damage_multiplier',
+                    'block_interaction_range', 'entity_interaction_range',
+                    'burning_time', 'explosion_knockback_resistance',
+                    'movement_efficiency', 'oxygen_bonus', 'water_movement_efficiency',
+                    'jump_strength', 'spawn_reinforcements'
+                ], default: 'max_health'
+            },
             { name: 'action', label: 'Action', type: 'select', options: ['get', 'base_get', 'base_set', 'modifier_add', 'modifier_remove', 'modifier_value_get'], default: 'base_get' },
-            { name: 'value', label: 'Value (Amount)', type: 'number', default: 0 },
-            { name: 'operation', label: 'Operation (Mod)', type: 'select', options: ['add', 'multiply', 'multiply_base'], default: 'add' },
-            { name: 'uuid', label: 'UUID (Mod)', type: 'text', default: '' },
-            { name: 'name', label: 'Name (Mod)', type: 'text', default: '' }
+            { name: 'value', label: 'Value', type: 'number', default: 0 },
+            { name: 'operation', label: 'Operation', type: 'select', options: ['add_value', 'add_multiplied_base', 'add_multiplied_total'], default: 'add_value' },
+            { name: 'id', label: 'Modifier ID', type: 'text', default: 'my_modifier' }
         ]
     },
 
@@ -551,15 +591,33 @@ const NodeDefinitions = {
         category: 'data',
         description: 'Item with components',
         inputs: [
-            { name: 'NBT', type: PinTypes.NBT }
+            { name: 'Components', type: PinTypes.COMPONENT }
         ],
         outputs: [
             { name: 'Item', type: PinTypes.ITEM }
         ],
         properties: [
             { name: 'item', label: 'Item ID', type: 'minecraft_item', default: 'minecraft:diamond' },
-            { name: 'count', label: 'Count', type: 'number', default: 1 },
-            { name: 'components', label: 'Components', type: 'textarea', default: '' }
+            { name: 'count', label: 'Count', type: 'number', default: 1 }
+        ]
+    },
+
+    [NodeTypes.DATA_COMPONENT]: {
+        title: 'Data Component',
+        category: 'data',
+        description: '1.21+ Data Component',
+        tooltip: `
+<h3>Data Component</h3>
+<p><strong>Logic:</strong> Defines a data component (like NBT but 1.21+).</p>
+<p><strong>Usage:</strong> Connect to Item Stack or other components. Examples: minecraft:food, minecraft:damage.</p>
+`,
+        inputs: [],
+        outputs: [
+            { name: 'Component', type: PinTypes.COMPONENT }
+        ],
+        properties: [
+            { name: 'component_id', label: 'Component ID', type: 'text', default: 'minecraft:damage' },
+            { name: 'value', label: 'Value (JSON)', type: 'textarea', default: '0' }
         ]
     },
 
@@ -600,12 +658,6 @@ const NodeDefinitions = {
 <p><strong>Usage:</strong> Select check type (Block, Entity, Score). Connect "True" output to commands to run if match.</p>
 <p><strong>Combines With:</strong> Command Blocks (Chain) or other Logic nodes.</p>
 `,
-        tooltip: `
-<h3>If Condition</h3>
-<p><strong>Logic:</strong> Branches execution based on a condition (like 'execute if').</p>
-<p><strong>Usage:</strong> Select check type (Block, Entity, Score). Connect "True" output to commands to run if match.</p>
-<p><strong>Combines With:</strong> Command Blocks (Chain) or other Logic nodes.</p>
-`,
         inputs: [
             { name: 'Exec', type: PinTypes.EXEC },
             { name: 'Condition', type: PinTypes.STRING }
@@ -624,12 +676,6 @@ const NodeDefinitions = {
         title: 'Loop',
         category: 'logic',
         description: 'Repeat actions multiple times',
-        tooltip: `
-<h3>Loop</h3>
-<p><strong>Logic:</strong> Repeats the "Loop Body" execution flow N times (Unrolled).</p>
-<p><strong>Usage:</strong> Set "Iterations" or connect a Number pin. Connect "Loop Body" to the commands to repeat.</p>
-<p><strong>Combines With:</strong> Chain Command Blocks.</p>
-`,
         tooltip: `
 <h3>Loop</h3>
 <p><strong>Logic:</strong> Repeats the "Loop Body" execution flow N times (Unrolled).</p>

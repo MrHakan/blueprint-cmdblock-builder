@@ -8,6 +8,7 @@
     <link rel="icon" href="https://styles.redditmedia.com/t5_6aviyc/styles/profileIcon_msenduashsw81.jpg"
         type="image/png">
     <link rel="stylesheet" href="/styles/blueprint.css">
+    <link rel="stylesheet" href="/styles/minecraft-theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
@@ -75,11 +76,25 @@
             <div class="output-content">
                 <textarea id="commandOutput" readonly
                     placeholder="Your command graph will be compiled here..."></textarea>
+                <div id="compilerLog" class="compiler-log" style="display: none;">
+                    <div class="log-entry info">Compiler ready. Add nodes to begin.</div>
+                </div>
+            </div>
+            <div class="sync-status" id="syncStatus">
+                <span class="sync-indicator synced"></span>
+                <span>Synced with CBA</span>
             </div>
         </footer>
     </div>
 
+    <!-- Navigation to CBA -->
+    <a href="/cba" class="cba-link" id="cbaLink" title="Open Command Block Assembler">
+        <i class="fas fa-terminal"></i>
+        <span>Open in CBA</span>
+    </a>
+
     <!-- Scripts -->
+    <script src="/scripts/registry/Registry.js"></script>
     <script src="/scripts/blueprint/asset-data.js"></script>
     <script src="/scripts/blueprint/nodes.js"></script>
     <script src="/scripts/blueprint/compiler.js"></script>
@@ -88,8 +103,171 @@
         // Initialize the editor when the page loads
         document.addEventListener('DOMContentLoaded', () => {
             window.blueprintEditor = new BlueprintEditor('canvasContainer');
+
+            // Tab switching functionality
+            const tabs = document.querySelectorAll('.output-tab');
+            const commandOutput = document.getElementById('commandOutput');
+            const compilerLog = document.getElementById('compilerLog');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    const tabName = tab.dataset.tab;
+                    if (tabName === 'preview') {
+                        commandOutput.style.display = 'block';
+                        compilerLog.style.display = 'none';
+                    } else {
+                        commandOutput.style.display = 'none';
+                        compilerLog.style.display = 'block';
+                    }
+                });
+            });
         });
+
+        // Global function to log compiler messages
+        function logCompiler(message, type = 'info') {
+            const log = document.getElementById('compilerLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="log-time">[${timestamp}]</span> ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+
+            // Keep only last 100 entries
+            while (log.children.length > 100) {
+                log.removeChild(log.firstChild);
+            }
+        }
+
+        // Auto-sync commands to CBA localStorage (uses same format as CBA)
+        function syncToCBA(commands) {
+            // Update CBA's storage format: command_blocks object with myInput key
+            let cbData = JSON.parse(localStorage.getItem('command_blocks')) || {};
+            cbData.myInput = commands;
+            localStorage.setItem('command_blocks', JSON.stringify(cbData));
+            const status = document.getElementById('syncStatus');
+            const indicator = status.querySelector('.sync-indicator');
+
+            indicator.classList.remove('synced');
+            indicator.classList.add('syncing');
+
+            setTimeout(() => {
+                indicator.classList.remove('syncing');
+                indicator.classList.add('synced');
+            }, 500);
+
+            logCompiler(`Synced ${commands.split('\n').filter(l => l.trim()).length} commands to CBA`, 'success');
+        }
     </script>
+
+    <style>
+        /* Additional styles for new features */
+        .compiler-log {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            background: #1a1a1a;
+            height: 100%;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .log-entry {
+            padding: 4px 8px;
+            border-left: 3px solid #444;
+            margin-bottom: 4px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .log-entry.info {
+            border-color: #4a9eff;
+        }
+
+        .log-entry.success {
+            border-color: #4caf50;
+        }
+
+        .log-entry.warning {
+            border-color: #ffc107;
+        }
+
+        .log-entry.error {
+            border-color: #f44336;
+        }
+
+        .log-time {
+            color: #666;
+            margin-right: 8px;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            font-size: 11px;
+            color: #888;
+        }
+
+        .sync-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+        }
+
+        .sync-indicator.synced {
+            background: #4caf50;
+        }
+
+        .sync-indicator.syncing {
+            background: #ffc107;
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .cba-link {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .cba-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+        }
+
+        .cba-link i {
+            font-size: 16px;
+        }
+    </style>
 </body>
 
 </html>

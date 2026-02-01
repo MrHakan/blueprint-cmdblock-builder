@@ -1,11 +1,20 @@
 {
-    "name": "goatedstacker-local",
+    "name": "blueprint-command-gen",
     "version": "1.0.0",
-    "description": "Local server for Command Block Assembler",
+    "description": "Minecraft Command Block Assembler and Blueprint Editor tools",
     "main": "server.js",
     "scripts": {
-        "start": "node server.js"
+        "start": "node server.js",
+        "dev": "node server.js"
     },
+    "keywords": [
+        "minecraft",
+        "command-block",
+        "datapack",
+        "one-command"
+    ],
+    "author": "GalSergey",
+    "license": "MIT",
     "dependencies": {
         "express": "^4.18.2",
         "cors": "^2.8.5",

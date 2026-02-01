@@ -173,9 +173,23 @@ class BlueprintCompiler {
             }
             case NodeTypes.GIVE: {
                 const target = getInputValue('Target') || '@p';
-                const item = getInputValue('Item') || node.data.item;
-                const count = getInputValue('Count') || node.data.count;
-                return `give ${target} ${item} ${count}`;
+                // If Item input is connected (from Item Stack node), use it.
+                // Item Stack now returns "item[comp] count", so we might need to handle count splitting?
+                // Actually, GIVE syntax is: give <target> <item> [<count>]
+                // If Item Stack returns "item count", we can just pass it if the syntax aligns, 
+                // but usually Item Stack returns just the item string or we need to be careful?
+                // Let's check ITEM_STACK output. 
+                // Previous implementation of ITEM_STACK output was just string? 
+                // Updated logic returns "item count". 
+                // So "give target item count" works if we just concat.
+
+                let itemData = getInputValue('Item');
+                // If manual property usage or string
+                if (!itemData) {
+                    itemData = `${node.data.item} ${node.data.count}`;
+                }
+
+                return `give ${target} ${itemData}`;
             }
             case NodeTypes.SUMMON: {
                 const entity = node.data.entity;
@@ -219,10 +233,17 @@ class BlueprintCompiler {
             }
             case NodeTypes.EFFECT: {
                 const target = getInputValue('Target') || '@s';
+                // 1.21+ uses minecraft: prefix for effects
+                const effect = node.data.effect.includes(':') ? node.data.effect : `minecraft:${node.data.effect}`;
                 if (node.data.action === 'clear') {
-                    return `effect clear ${target} ${node.data.effect}`;
+                    return `effect clear ${target} ${effect}`;
                 }
-                return `effect give ${target} ${node.data.effect} ${node.data.duration} ${node.data.amplifier}`;
+                // effect give <target> <effect> [<seconds>] [<amplifier>] [<hideParticles>]
+                let cmd = `effect give ${target} ${effect} ${node.data.duration} ${node.data.amplifier}`;
+                if (node.data.hideParticles) {
+                    cmd += ' true';
+                }
+                return cmd;
             }
             case NodeTypes.GAMEMODE: {
                 const target = getInputValue('Target') || '@s';
@@ -251,7 +272,8 @@ class BlueprintCompiler {
             }
             case NodeTypes.DAMAGE: {
                 const target = getInputValue('Target') || '@s';
-                let cmd = `damage ${target} ${node.data.amount} ${node.data.damageType}`;
+                const damageType = node.data.damageType.includes(':') ? node.data.damageType : `minecraft:${node.data.damageType}`;
+                let cmd = `damage ${target} ${node.data.amount} ${damageType}`;
                 if (node.data.attacker) {
                     cmd += ` by ${node.data.attacker}`;
                 }
@@ -259,7 +281,8 @@ class BlueprintCompiler {
             }
             case NodeTypes.ATTRIBUTE: {
                 const target = getInputValue('Target') || '@s';
-                const attr = node.data.attribute;
+                // 1.21 uses minecraft: prefix for attributes
+                const attr = node.data.attribute.includes(':') ? node.data.attribute : `minecraft:${node.data.attribute}`;
                 const action = node.data.action;
 
                 // attribute <target> <attribute> get [<scale>]
@@ -277,26 +300,53 @@ class BlueprintCompiler {
                     return `attribute ${target} ${attr} base set ${node.data.value}`;
                 }
 
-                // attribute <target> <attribute> modifier add <uuid> <name> <value> <add|multiply|multiply_base>
+                // 1.21+ syntax: attribute <target> <attribute> modifier add <id> <value> <operation>
                 if (action === 'modifier_add') {
-                    const uuid = node.data.uuid || '0-0-0-0-0';
-                    const name = node.data.name || 'modification';
-                    return `attribute ${target} ${attr} modifier add ${uuid} ${name} ${node.data.value} ${node.data.operation}`;
+                    const id = node.data.id || 'my_modifier';
+                    return `attribute ${target} ${attr} modifier add ${id} ${node.data.value} ${node.data.operation}`;
                 }
 
-                // attribute <target> <attribute> modifier remove <uuid>
+                // attribute <target> <attribute> modifier remove <id>
                 if (action === 'modifier_remove') {
-                    const uuid = node.data.uuid || '0-0-0-0-0';
-                    return `attribute ${target} ${attr} modifier remove ${uuid}`;
+                    const id = node.data.id || 'my_modifier';
+                    return `attribute ${target} ${attr} modifier remove ${id}`;
                 }
 
-                // attribute <target> <attribute> modifier value get <uuid> [<scale>]
+                // attribute <target> <attribute> modifier value get <id> [<scale>]
                 if (action === 'modifier_value_get') {
-                    const uuid = node.data.uuid || '0-0-0-0-0';
-                    return `attribute ${target} ${attr} modifier value get ${uuid}`;
+                    const id = node.data.id || 'my_modifier';
+                    return `attribute ${target} ${attr} modifier value get ${id}`;
+                }
+
+                // attribute <target> <attribute> modifier value get <id> [<scale>]
+                if (action === 'modifier_value_get') {
+                    const id = node.data.id || 'my_modifier';
+                    return `attribute ${target} ${attr} modifier value get ${id}`;
                 }
 
                 return '';
+            }
+            case NodeTypes.DATA_COMPONENT: {
+                // Returns string "id=value"
+                const id = node.data.component_id;
+                const value = node.data.value;
+                return `${id}=${value}`;
+            }
+            case NodeTypes.ITEM_STACK: {
+                // Compiles to: minecraft:item[component=value] count
+                const item = node.data.item;
+                const count = getInputValue('Count') || node.data.count;
+                // Get component from input
+                // Note: Current editor mostly supports one connection per input
+                // Ideally this would aggregate multiple, but for now we take the first
+                const component = getInputValue('Components');
+
+                let itemString = item;
+                if (component) {
+                    itemString += `[${component}]`;
+                }
+
+                return `${itemString} ${count}`;
             }
             default:
                 return '';

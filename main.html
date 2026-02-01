@@ -509,7 +509,7 @@
                             let sign_lines = line.split('|');
                             sign_lines.forEach((sign_line, i, arr) => {
                                 try {
-                                    sign_lines[i] = JSON.pasrse(sign_line.trim())
+                                    sign_lines[i] = JSON.parse(sign_line.trim())
                                 } catch {
                                     sign_lines[i] = `'"${sign_line.trim()}"'`
                                 }
@@ -893,7 +893,7 @@
                     const auto = autoMatch && parseInt(autoMatch[1], 10) === 1 ? "A" : "N";
 
                     log("x:", x, " z:", z, "[", command_blockType, conditional, auto, "] command:", command);
-                    return ({ x, z, command_blockType, conditional, command, auto })
+                    return ({ x, z, blockType: command_blockType, conditional, command, auto })
                 }
             }
         }

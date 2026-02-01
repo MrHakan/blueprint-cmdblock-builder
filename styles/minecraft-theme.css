@@ -1,0 +1,110 @@
+/* Minecraft 1.21.11 Theme */
+
+@font-face {
+    font-family: 'Minecraft';
+    /* Since we don't have a ttf/woff file easily available, we use a pixel fallback or the one we might find */
+    src: local('Minecraft'), local('Minecraftia'), url('https://db.onlinewebfonts.com/t/6ab539c6fc2b21ff0b149b3d06d7f97c.woff2') format('woff2');
+}
+
+body {
+    background-image: url('/assets/minecraft/textures/gui/advancements/backgrounds/stone.png') !important;
+    background-repeat: repeat !important;
+    background-color: #2e2e2e !important;
+    font-family: 'Minecraft', 'Courier New', monospace;
+}
+
+/* Node Styling */
+.node {
+    background: #c6c6c6 !important;
+    border: 2px solid #000 !important;
+    border-top-color: #ffffff !important;
+    border-left-color: #ffffff !important;
+    border-right-color: #555555 !important;
+    border-bottom-color: #555555 !important;
+    color: #1a1a1a !important;
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Fix pin text contrast */
+.pin {
+    color: #1a1a1a !important;
+    font-weight: bold;
+    text-shadow: none !important;
+}
+
+.node.selected {
+    outline: 2px solid #ffffff !important;
+}
+
+.node-header {
+    background: #8b8b8b !important;
+    border-bottom: 2px solid #555 !important;
+    color: #fff !important;
+    text-shadow: 2px 2px 0px #3f3f3f;
+}
+
+/* Inputs */
+.node-input,
+select,
+textarea {
+    background: #000000 !important;
+    border: 2px solid #a0a0a0 !important;
+    border-top-color: #555555 !important;
+    border-left-color: #555555 !important;
+    border-right-color: #ffffff !important;
+    border-bottom-color: #ffffff !important;
+    color: #ffffff !important;
+    font-family: 'Minecraft', monospace;
+}
+
+/* Headers */
+h1,
+h2,
+h3 {
+    text-shadow: 2px 2px 0px #3f3f3f;
+    color: #ffffff;
+}
+
+/* Buttons */
+.btn,
+button {
+    background: #c6c6c6;
+    border: 2px solid #000;
+    border-top-color: #fff;
+    border-left-color: #fff;
+    border-right-color: #555;
+    border-bottom-color: #555;
+    color: #1a1a1a;
+    cursor: pointer;
+}
+
+.btn:active,
+button:active {
+    border-top-color: #555;
+    border-left-color: #555;
+    border-right-color: #fff;
+    border-bottom-color: #fff;
+}
+
+/* Connections */
+.connection-line {
+    stroke-width: 3px !important;
+}
+
+/* Output Panel */
+.output-panel {
+    background: rgba(0, 0, 0, 0.8) !important;
+    border-top: 4px solid #c6c6c6 !important;
+}
+
+/* Tabs */
+.output-tab {
+    background: #8b8b8b !important;
+    border: 2px solid #000 !important;
+    color: #fff !important;
+}
+
+.output-tab.active {
+    background: #c6c6c6 !important;
+    color: #404040 !important;
+}

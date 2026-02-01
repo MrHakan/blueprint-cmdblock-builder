@@ -572,8 +572,26 @@ class BlueprintEditor {
 
     compile() {
         if (window.blueprintCompiler) {
+            const startTime = performance.now();
             const commands = window.blueprintCompiler.compile(this.nodes, this.connections);
+            const endTime = performance.now();
+
             this.commandOutput.value = commands;
+
+            // Log compilation info
+            if (typeof logCompiler === 'function') {
+                const nodeCount = this.nodes.length;
+                const connCount = this.connections.length;
+                const cmdCount = commands.split('\n').filter(l => l.trim() && !l.startsWith('#')).length;
+                const time = (endTime - startTime).toFixed(2);
+
+                logCompiler(`Compiled ${nodeCount} nodes, ${connCount} connections → ${cmdCount} commands (${time}ms)`, 'info');
+            }
+
+            // Auto-sync to CBA
+            if (typeof syncToCBA === 'function' && commands.trim()) {
+                syncToCBA(commands);
+            }
         }
     }
 
@@ -597,6 +615,136 @@ class BlueprintEditor {
             // Local storage fallback
             localStorage.setItem('command_blocks_myInput', text);
             alert('Commands saved to memory. Open the main page to see them.');
+        }
+    }
+
+    saveGraph() {
+        const saveData = {
+            version: 1,
+            viewport: { x: this.offset.x, y: this.offset.y, zoom: this.zoom },
+            nodes: this.nodes.map(node => ({
+                id: this.nodes.indexOf(node),
+                type: node.type,
+                x: node.x,
+                y: node.y,
+                data: { ...node.data }
+            })),
+            connections: this.connections.map(conn => ({
+                fromNodeId: this.nodes.indexOf(conn.fromNode),
+                fromPinName: conn.fromPin.name,
+                toNodeId: this.nodes.indexOf(conn.toNode),
+                toPinName: conn.toPin.name,
+                type: conn.type
+            }))
+        };
+
+        const json = JSON.stringify(saveData, null, 2);
+        localStorage.setItem('blueprint_graph', json);
+
+        // Also offer download
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'blueprint_graph.json';
+        a.click();
+        URL.revokeObjectURL(url);
+
+        if (typeof showNotification === 'function') {
+            showNotification('Graph saved successfully!', 'success');
+        } else {
+            alert('Graph saved to localStorage and downloaded as file.');
+        }
+    }
+
+    loadGraph() {
+        // First try to load from file input
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        this.restoreGraph(JSON.parse(ev.target.result));
+                    } catch (err) {
+                        alert('Failed to load graph: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        };
+        input.click();
+
+        // If user cancels file dialog, offer localStorage option
+        setTimeout(() => {
+            if (!input.files || input.files.length === 0) {
+                const saved = localStorage.getItem('blueprint_graph');
+                if (saved && confirm('Load from localStorage instead?')) {
+                    try {
+                        this.restoreGraph(JSON.parse(saved));
+                    } catch (err) {
+                        alert('Failed to load graph: ' + err.message);
+                    }
+                }
+            }
+        }, 1000);
+    }
+
+    restoreGraph(saveData) {
+        // Clear current
+        this.nodes.forEach(n => n.element.remove());
+        this.nodes = [];
+        this.connections = [];
+        this.selectedNodes.clear();
+
+        // Restore viewport
+        if (saveData.viewport) {
+            this.offset = { x: saveData.viewport.x, y: saveData.viewport.y };
+            this.zoom = saveData.viewport.zoom || 1;
+            this.updateTransform();
+        }
+
+        // Restore nodes
+        const nodeMap = new Map();
+        saveData.nodes.forEach(nodeData => {
+            const node = this.addNode(nodeData.type, nodeData.x, nodeData.y);
+            if (node) {
+                node.data = { ...nodeData.data };
+                nodeMap.set(nodeData.id, node);
+            }
+        });
+
+        // Restore connections
+        saveData.connections.forEach(connData => {
+            const fromNode = nodeMap.get(connData.fromNodeId);
+            const toNode = nodeMap.get(connData.toNodeId);
+
+            if (fromNode && toNode) {
+                const fromDef = NodeDefinitions[fromNode.type];
+                const toDef = NodeDefinitions[toNode.type];
+                const fromPin = fromDef.outputs.find(p => p.name === connData.fromPinName);
+                const toPin = toDef.inputs.find(p => p.name === connData.toPinName);
+
+                if (fromPin && toPin) {
+                    this.connections.push({
+                        fromNode,
+                        fromPin,
+                        toNode,
+                        toPin,
+                        type: connData.type
+                    });
+                }
+            }
+        });
+
+        this.renderConnections();
+        this.compile();
+
+        if (typeof showNotification === 'function') {
+            showNotification('Graph loaded successfully!', 'success');
         }
     }
 }

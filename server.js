@@ -103,11 +103,56 @@ app.post('/cba/share/get', (req, res) => {
 // Serve data.json explicitly if needed, though express.static handles it.
 // Just ensuring API compatibility if the frontend asks specifically.
 
+// Landing page
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Command Block Assembler (alias)
+app.get('/cba', (req, res) => {
+    res.sendFile(path.join(__dirname, 'main.html'));
+});
+
 // Blueprint Editor Route
 app.get('/blueprint', (req, res) => {
     res.sendFile(path.join(__dirname, 'blueprint.html'));
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}/main.html`);
+// Item Components Viewer (placeholder)
+app.get('/item', (req, res) => {
+    res.status(503).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Coming Soon</title>
+            <style>
+                body { 
+                    background: #1a1a2e; 
+                    color: #fff; 
+                    font-family: Arial, sans-serif;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    margin: 0;
+                    text-align: center;
+                }
+                h1 { color: #9c27b0; }
+                a { color: #4a9eff; }
+            </style>
+        </head>
+        <body>
+            <div>
+                <h1>Item Components Viewer</h1>
+                <p>This tool is coming soon!</p>
+                <p><a href="/">← Back to Home</a></p>
+            </div>
+        </body>
+        </html>
+    `);
 });
+
+app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}/`);
+});
+

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GalLab Tools - Minecraft Command Generators</title>
+    <meta name="description"
+        content="A suite of tools for Minecraft command generation including Command Block Assembler and Blueprint Editor">
+    <link rel="icon" href="https://styles.redditmedia.com/t5_6aviyc/styles/profileIcon_msenduashsw81.jpg"
+        type="image/png">
+    <link rel="stylesheet" href="/styles/common.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+
+        .hero {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #4a9eff, #00bcd4, #4caf50);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: #888;
+            margin-bottom: 50px;
+            max-width: 600px;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1000px;
+            width: 100%;
+            padding: 0 20px;
+        }
+
+        .tool-card {
+            background: rgba(45, 45, 45, 0.9);
+            border-radius: 12px;
+            padding: 30px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-color);
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .tool-card.cba {
+            --accent-color: #4caf50;
+        }
+
+        .tool-card.blueprint {
+            --accent-color: #4a9eff;
+        }
+
+        .tool-card.item {
+            --accent-color: #9c27b0;
+        }
+
+        .tool-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 15px;
+            image-rendering: pixelated;
+        }
+
+        .tool-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .tool-desc {
+            color: #aaa;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .tool-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 15px;
+            text-transform: uppercase;
+        }
+
+        .tool-badge.stable {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+
+        .tool-badge.beta {
+            background: rgba(74, 158, 255, 0.2);
+            color: #4a9eff;
+        }
+
+        .tool-badge.soon {
+            background: rgba(156, 39, 176, 0.2);
+            color: #9c27b0;
+        }
+
+        #footer {
+            background: rgba(30, 30, 30, 0.9);
+            margin-top: auto;
+        }
+
+        .version-badge {
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="links">
+            <div class="icon">
+                <a href="/">
+                    <img src="/assets/skin.png" class="skin">
+                    <img src="/assets/glasses.png" class="glasses">
+                </a>
+            </div>
+            <nav class="header-links">
+                <a href="/" style="color: white">Home</a>
+                <a href="/cba">Command Block Assembler</a>
+                <a href="/blueprint" style="color: #4a9eff">Blueprint Editor</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="hero">
+        <h1 class="hero-title">GalLab Tools</h1>
+        <p class="hero-subtitle">
+            A powerful suite of tools for Minecraft map makers and command enthusiasts.
+            Create "One Command Creations", design command graphs visually, and more.
+        </p>
+
+        <div class="tools-grid">
+            <a href="/cba" class="tool-card cba">
+                <img src="/assets/command_block.png" class="tool-icon" alt="Command Block">
+                <h2 class="tool-title">Command Block Assembler</h2>
+                <p class="tool-desc">
+                    Write commands in a simple text format and generate "One Command Creation"
+                    commands for Minecraft. Supports setup, controller, and manual modes.
+                </p>
+                <span class="tool-badge stable">Stable</span>
+            </a>
+
+            <a href="/blueprint" class="tool-card blueprint">
+                <img src="/assets/repeating_command_block.png" class="tool-icon" alt="Blueprint">
+                <h2 class="tool-title">Blueprint Editor</h2>
+                <p class="tool-desc">
+                    Visual node-based command graph editor inspired by Unreal Engine Blueprints.
+                    Drag, connect, and compile command flows visually.
+                </p>
+                <span class="tool-badge beta">Beta</span>
+            </a>
+
+            <div class="tool-card item" style="cursor: not-allowed; opacity: 0.7;">
+                <img src="/assets/chain_command_block.png" class="tool-icon" alt="Item Viewer">
+                <h2 class="tool-title">Item Components Viewer</h2>
+                <p class="tool-desc">
+                    Browse and explore Minecraft item components, NBT data structures,
+                    and 1.21+ data component system.
+                </p>
+                <span class="tool-badge soon">Coming Soon</span>
+            </div>
+        </div>
+    </main>
+
+    <div class="version-badge">v1.0.0</div>
+
+    <div id="footer">
+        <p id="patreon"><a href="https://www.patreon.com/GalSergey" target="_blank">Patreon</a></p>
+        <p>Please report any bugs to <a href="https://www.reddit.com/user/GalSergey" target="_blank">GalSergey</a> |
+            <a href="https://modrinth.com/user/GalSergey" target="_blank">My datapacks</a>
+        </p>
+    </div>
+
+    <script src="/scripts/common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            updatePatreonsElement('datapacks');
+        });
+    </script>
+</body>
+
+</html>
