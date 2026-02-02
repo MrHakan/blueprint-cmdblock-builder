@@ -14,13 +14,15 @@
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
 
     <!-- Common Styles and Scripts -->
-    <link rel="stylesheet" href="/styles/common.css">
-    <script src="/scripts/common.js"></script>
+    <link rel="stylesheet" href="./styles/common.css">
+    <script src="./scripts/common.js"></script>
 
     <!-- Page-specific Scripts -->
-    <script src="/scripts/monaco/gallab_cb_language.js"></script>
-    <script src="/scripts/monaco/key_commands.js"></script>
-    <script src="/scripts/snbt.js"></script>
+    <script src="./scripts/monaco/gallab_cb_language.js"></script>
+    <script src="./scripts/monaco/key_commands.js"></script>
+    <script src="./scripts/snbt.js"></script>
+    <script src="./scripts/blueprint/command-change-detector.js"></script>
+    <script src="./scripts/sync-manager.js"></script>
     <!-- Page-specific Styles -->
     <style>
         /* Command Block Assembler specific styles */
@@ -89,16 +91,16 @@
     <header>
         <div class="links">
             <div class="icon">
-                <a href="/">
-                    <img src="/assets/skin.png" class="skin">
-                    <img src="/assets/glasses.png" class="glasses">
+                <a href="./">
+                    <img src="./assets/skin.png" class="skin">
+                    <img src="./assets/glasses.png" class="glasses">
                 </a>
             </div>
             <nav class="header-links">
-                <a href="/">Datapack Assembler</a>
+                <a href="./">Datapack Assembler</a>
                 <a style="color: white">Command Block Assembler</a>
-                <a href="/blueprint" style="color: #4a9eff">Blueprint Editor</a>
-                <a href="/item">Item Components Viewer</a>
+                <a href="./blueprint" style="color: #4a9eff">Blueprint Editor</a>
+                <a href="./item">Item Components Viewer</a>
             </nav>
         </div>
         <div class="library">
@@ -193,12 +195,22 @@
 
                 editor.onDidChangeModelContent(() => {
                     handleInputChange({ target: { name: "myInput", value: editor.getValue() } });
+                    // Sync to Blueprint via SyncManager
+                    if (window.syncManager) {
+                        syncManager.updateCommands(editor.getValue());
+                    }
                 });
 
-                storedTextareaValue = getStorage('myInput');
-                textarea = editor.getValue();
-                if (storedTextareaValue) {
-                    editor.setValue(storedTextareaValue);
+                // Load from SyncManager first, then fallback to old storage
+                let initialValue = '';
+                if (window.syncManager) {
+                    initialValue = syncManager.getCommands();
+                }
+                if (!initialValue) {
+                    initialValue = getStorage('myInput') || '';
+                }
+                if (initialValue) {
+                    editor.setValue(initialValue);
                 }
                 inputFields = document.querySelectorAll('input')
                 inputFields.forEach((inputField) => {
@@ -898,6 +910,126 @@
             }
         }
     </script>
+
+    <style>
+        .blueprint-link {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4a9eff, #2d7ad6);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(74, 158, 255, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .blueprint-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 158, 255, 0.6);
+        }
+
+        .blueprint-link i {
+            font-size: 16px;
+        }
+    </style>
+
+    <!-- Open in Blueprint Button -->
+    <a href="./blueprint" class="blueprint-link" id="blueprintLink" title="Open in Blueprint Editor">
+        <span>📐</span>
+        <span>Open in Blueprint</span>
+    </a>
+
+    <script>
+        // =============================================
+        // SEAMLESS CBA-BLUEPRINT SYNC via SyncManager
+        // =============================================
+
+        let isExternalUpdate = false;
+
+        // Initialize cross-tab sync
+        function initSeamlessSync() {
+            if (!window.syncManager) {
+                console.warn('[Sync] SyncManager not available');
+                return;
+            }
+
+            // Listen for external changes (from Blueprint or other tabs)
+            syncManager.subscribe((state, source) => {
+                if (source === 'external' && state && state.lastEditor === 'blueprint') {
+                    // Blueprint made changes - update our editor
+                    isExternalUpdate = true;
+                    const currentValue = editor.getValue();
+                    if (state.commands && state.commands !== currentValue) {
+                        editor.setValue(state.commands);
+                        showSyncNotification('Synced from Blueprint');
+                    }
+                    isExternalUpdate = false;
+                }
+            });
+
+            // Show sync status indicator
+            showSyncIndicator();
+        }
+
+        // Show sync indicator
+        function showSyncIndicator() {
+            let indicator = document.getElementById('syncIndicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'syncIndicator';
+                indicator.className = 'sync-status-indicator';
+                indicator.innerHTML = '🔄 Synced';
+                document.body.appendChild(indicator);
+            }
+        }
+
+        // Flash notification when sync happens
+        function showSyncNotification(message) {
+            const indicator = document.getElementById('syncIndicator');
+            if (indicator) {
+                indicator.innerHTML = '✨ ' + message;
+                indicator.classList.add('syncing');
+                setTimeout(() => {
+                    indicator.innerHTML = '🔄 Synced';
+                    indicator.classList.remove('syncing');
+                }, 1500);
+            }
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initSeamlessSync, 500);
+        });
+    </script>
+
+    <style>
+        .sync-status-indicator {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(74, 158, 255, 0.9);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .sync-status-indicator.syncing {
+            background: rgba(76, 175, 80, 0.9);
+            transform: scale(1.1);
+        }
+    </style>
 </body>
 
 </html>

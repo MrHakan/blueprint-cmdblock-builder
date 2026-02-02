@@ -7,9 +7,10 @@
     <title>Blueprint Command Builder | Command Block Assembler</title>
     <link rel="icon" href="https://styles.redditmedia.com/t5_6aviyc/styles/profileIcon_msenduashsw81.jpg"
         type="image/png">
-    <link rel="stylesheet" href="/styles/blueprint.css">
-    <link rel="stylesheet" href="/styles/minecraft-theme.css">
+    <link rel="stylesheet" href="./styles/blueprint.css">
+    <link rel="stylesheet" href="./styles/minecraft-theme.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="./scripts/sync-manager.js"></script>
 </head>
 
 <body>
@@ -88,21 +89,32 @@
     </div>
 
     <!-- Navigation to CBA -->
-    <a href="/cba" class="cba-link" id="cbaLink" title="Open Command Block Assembler">
+    <a href="./cba" class="cba-link" id="cbaLink" title="Open Command Block Assembler">
         <i class="fas fa-terminal"></i>
         <span>Open in CBA</span>
     </a>
 
     <!-- Scripts -->
-    <script src="/scripts/registry/Registry.js"></script>
-    <script src="/scripts/blueprint/asset-data.js"></script>
-    <script src="/scripts/blueprint/nodes.js"></script>
-    <script src="/scripts/blueprint/compiler.js"></script>
-    <script src="/scripts/blueprint/node-editor.js"></script>
+    <script src="./scripts/registry/Registry.js"></script>
+    <script src="./scripts/blueprint/asset-data.js"></script>
+    <script src="./scripts/blueprint/nodes.js"></script>
+    <script src="./scripts/blueprint/compiler.js"></script>
+    <script src="./scripts/blueprint/node-editor.js"></script>
     <script>
         // Initialize the editor when the page loads
         document.addEventListener('DOMContentLoaded', () => {
             window.blueprintEditor = new BlueprintEditor('canvasContainer');
+
+            // Auto-load saved graph from localStorage
+            const savedGraph = localStorage.getItem('blueprint_graph');
+            if (savedGraph) {
+                try {
+                    blueprintEditor.restoreGraph(JSON.parse(savedGraph));
+                    console.log('[Blueprint] Auto-loaded saved graph');
+                } catch (e) {
+                    console.error('[Blueprint] Failed to auto-load graph:', e);
+                }
+            }
 
             // Tab switching functionality
             const tabs = document.querySelectorAll('.output-tab');
@@ -142,12 +154,44 @@
             }
         }
 
-        // Auto-sync commands to CBA localStorage (uses same format as CBA)
+        // Auto-sync commands to CBA via SyncManager
         function syncToCBA(commands) {
-            // Update CBA's storage format: command_blocks object with myInput key
+            // Get graph data for sync
+            let graphData = null;
+            if (window.blueprintEditor) {
+                graphData = {
+                    nodes: blueprintEditor.nodes.map((n, idx) => ({
+                        id: idx,
+                        type: n.type,
+                        x: n.x,
+                        y: n.y,
+                        data: n.data
+                    })),
+                    connections: blueprintEditor.connections.map(c => ({
+                        fromNodeId: blueprintEditor.nodes.indexOf(c.fromNode),
+                        fromPinName: c.fromPin.name,
+                        toNodeId: blueprintEditor.nodes.indexOf(c.toNode),
+                        toPinName: c.toPin.name,
+                        type: c.type
+                    })),
+                    nodeCount: blueprintEditor.nodes.length,
+                    connectionCount: blueprintEditor.connections.length
+                };
+            }
+
+            // Use SyncManager for cross-tab sync
+            if (window.syncManager) {
+                syncManager.updateGraph(graphData, commands);
+            }
+
+            // Also update old format for backward compatibility
             let cbData = JSON.parse(localStorage.getItem('command_blocks')) || {};
             cbData.myInput = commands;
+            if (graphData) {
+                cbData.blueprintGraph = graphData;
+            }
             localStorage.setItem('command_blocks', JSON.stringify(cbData));
+
             const status = document.getElementById('syncStatus');
             const indicator = status.querySelector('.sync-indicator');
 
@@ -268,6 +312,56 @@
             font-size: 16px;
         }
     </style>
+
+    <script>
+        // =============================================
+        // SEAMLESS CBA-BLUEPRINT SYNC LISTENER
+        // =============================================
+
+        // Listen for changes from CBA
+        function initBlueprintSync() {
+            if (!window.syncManager) {
+                console.warn('[Blueprint Sync] SyncManager not available');
+                return;
+            }
+
+            // Subscribe to sync updates from CBA
+            syncManager.subscribe((state, source) => {
+                if (source === 'external' && state && state.lastEditor === 'cba') {
+                    console.log('[Blueprint Sync] Received update from CBA');
+                    // CBA made changes - show notification
+                    showSyncNotification('Commands updated from CBA');
+
+                    // Update command output display
+                    const output = document.getElementById('commandOutput');
+                    if (output && state.commands) {
+                        output.value = state.commands;
+                    }
+                }
+            });
+        }
+
+        // Show sync notification
+        function showSyncNotification(message) {
+            const status = document.getElementById('syncStatus');
+            if (status) {
+                const indicator = status.querySelector('.sync-indicator');
+                if (indicator) {
+                    indicator.classList.add('syncing');
+                    setTimeout(() => {
+                        indicator.classList.remove('syncing');
+                        indicator.classList.add('synced');
+                    }, 1500);
+                }
+            }
+            logCompiler(message, 'info');
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initBlueprintSync, 600);
+        });
+    </script>
 </body>
 
 </html>

@@ -15,6 +15,10 @@
     ],
     "author": "GalSergey",
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/MrHakan/blueprint-cmdblock-builder.git"
+    },
     "dependencies": {
         "express": "^4.18.2",
         "cors": "^2.8.5",

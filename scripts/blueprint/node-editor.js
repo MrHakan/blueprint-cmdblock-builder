@@ -277,28 +277,18 @@ class BlueprintEditor {
             }
             this.isPanning = false;
             this.container.classList.remove('grabbing');
+
+            // Auto-save when node was dragged
+            if (this.draggedNode) {
+                this.autoSaveGraph();
+            }
             this.draggedNode = null;
         });
 
+        // Zoom disabled to prevent connection line issues
         this.container.addEventListener('wheel', (e) => {
             e.preventDefault();
-            const delta = -Math.sign(e.deltaY) * 0.1;
-            const newZoom = Math.min(Math.max(this.zoom + delta, 0.2), 2);
-
-            // Zoom towards mouse
-            const rect = this.container.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-
-            const beforeX = (mouseX - this.offset.x) / this.zoom;
-            const beforeY = (mouseY - this.offset.y) / this.zoom;
-
-            this.zoom = newZoom;
-
-            this.offset.x = mouseX - beforeX * this.zoom;
-            this.offset.y = mouseY - beforeY * this.zoom;
-
-            this.updateTransform();
+            // Zoom functionality disabled
         }, { passive: false });
 
         // Drop handling
@@ -336,6 +326,7 @@ class BlueprintEditor {
         this.nodeLayer.appendChild(node.element);
         this.renderConnections();
         this.compile();
+        this.autoSaveGraph();
         return node;
     }
 
@@ -357,6 +348,7 @@ class BlueprintEditor {
         this.showProperties(null);
         this.renderConnections();
         this.compile();
+        this.autoSaveGraph();
     }
 
     updateTransform() {
@@ -450,6 +442,7 @@ class BlueprintEditor {
         this.activePin = null;
         this.renderConnections();
         this.compile();
+        this.autoSaveGraph();
     }
 
     clearSelection() {
@@ -657,6 +650,37 @@ class BlueprintEditor {
         }
     }
 
+    // Auto-save graph to localStorage (silent, no download or notification)
+    autoSaveGraph() {
+        // Skip auto-save during restore
+        if (this._isRestoring) return;
+
+        // Debounce auto-save
+        clearTimeout(this._autoSaveTimer);
+        this._autoSaveTimer = setTimeout(() => {
+            const saveData = {
+                version: 1,
+                viewport: { x: this.offset.x, y: this.offset.y, zoom: this.zoom },
+                nodes: this.nodes.map(node => ({
+                    id: this.nodes.indexOf(node),
+                    type: node.type,
+                    x: node.x,
+                    y: node.y,
+                    data: { ...node.data }
+                })),
+                connections: this.connections.map(conn => ({
+                    fromNodeId: this.nodes.indexOf(conn.fromNode),
+                    fromPinName: conn.fromPin.name,
+                    toNodeId: this.nodes.indexOf(conn.toNode),
+                    toPinName: conn.toPin.name,
+                    type: conn.type
+                }))
+            };
+            localStorage.setItem('blueprint_graph', JSON.stringify(saveData));
+            console.log('[Blueprint] Auto-saved graph');
+        }, 500);
+    }
+
     loadGraph() {
         // First try to load from file input
         const input = document.createElement('input');
@@ -694,6 +718,9 @@ class BlueprintEditor {
     }
 
     restoreGraph(saveData) {
+        // Skip auto-save during restore
+        this._isRestoring = true;
+
         // Clear current
         this.nodes.forEach(n => n.element.remove());
         this.nodes = [];
@@ -742,6 +769,9 @@ class BlueprintEditor {
 
         this.renderConnections();
         this.compile();
+
+        // Re-enable auto-save after restore is complete
+        this._isRestoring = false;
 
         if (typeof showNotification === 'function') {
             showNotification('Graph loaded successfully!', 'success');
@@ -881,12 +911,18 @@ class NodeInstance {
         const pinEl = this.element.querySelector(`.${type}-pin .pin-connector[data-pin-name="${pin.name}"]`);
         if (!pinEl) return { x: this.x, y: this.y };
 
-        const rect = pinEl.getBoundingClientRect();
-        const canvasRect = this.editor.container.getBoundingClientRect();
+        // Get the pin's position relative to the node element (unaffected by zoom)
+        const pinRect = pinEl.getBoundingClientRect();
+        const nodeRect = this.element.getBoundingClientRect();
 
+        // Calculate offset within the node (in scaled coordinates)
+        const offsetX = (pinRect.left + pinRect.width / 2 - nodeRect.left) / this.editor.zoom;
+        const offsetY = (pinRect.top + pinRect.height / 2 - nodeRect.top) / this.editor.zoom;
+
+        // Return node position + pin offset
         return {
-            x: (rect.left + rect.width / 2 - canvasRect.left - this.editor.offset.x) / this.editor.zoom,
-            y: (rect.top + rect.height / 2 - canvasRect.top - this.editor.offset.y) / this.editor.zoom
+            x: this.x + offsetX,
+            y: this.y + offsetY
         };
     }
 }
