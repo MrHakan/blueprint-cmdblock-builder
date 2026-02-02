@@ -95,8 +95,8 @@ class BlueprintEditor {
                 // Use different icon path or fallback for entities if needed
                 // For now assuming we might not have entity icons, but standard path is okay-ish or fallback
                 const iconPath = this.assetPicker.type === 'entity'
-                    ? `/assets/minecraft-id/minecraft_${assetId}_spawn_egg.png` // Try spawn egg for entity icon? Or assume same path
-                    : `/assets/minecraft-id/minecraft_${assetId}.png`;
+                    ? `./assets/minecraft-id/minecraft_${assetId}_spawn_egg.png` // Try spawn egg for entity icon? Or assume same path
+                    : `./assets/minecraft-id/minecraft_${assetId}.png`;
 
                 // Actually, let's keep it simple: if it's an entity, we can try using the spawn egg icon if available,
                 // or just the generic path. 
@@ -104,14 +104,14 @@ class BlueprintEditor {
                 // Let's try to be smart: if entity, append _spawn_egg for the ICON URL ONLY if it helps.
                 // But simpler: just use the ID. If 404, the fallback logic handles it.
 
-                let displayIcon = `/assets/minecraft-id/minecraft_${assetId}.png`;
+                let displayIcon = `./assets/minecraft-id/minecraft_${assetId}.png`;
                 if (this.assetPicker.type === 'entity') {
                     // Use Mob Head icons
-                    displayIcon = `/assets/mob-heads/${assetId}.png`;
+                    displayIcon = `./assets/mob-heads/${assetId}.png`;
                 }
                 if (this.assetPicker.type === 'attribute') {
                     // Generic icon for attributes
-                    displayIcon = `/assets/minecraft-id/minecraft_attribute.png`; // You might not have this, but fallback handles it
+                    displayIcon = `./assets/minecraft-id/minecraft_attribute.png`; // You might not have this, but fallback handles it
                 }
 
                 item.innerHTML = `
@@ -517,7 +517,7 @@ class BlueprintEditor {
                         const id = val.replace('minecraft:', '');
                         input.innerHTML = `
                             <div class="asset-preview">
-                                <img src="/assets/minecraft-id/minecraft_${id}.png" onerror="this.src='/assets/minecraft-id/minecraft_barrier.png'">
+                                <img src="./assets/minecraft-id/minecraft_${id}.png" onerror="this.src='./assets/minecraft-id/minecraft_barrier.png'">
                                 <span>${id}</span>
                             </div>
                             <button class="asset-change-btn">Change</button>

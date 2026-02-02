@@ -450,13 +450,13 @@ window.registerDatapackLanguage = function (monaco) {
 
 const all_commands_types = /^# ([Ss]etup|[Cc]ommand blocks?|[Ii]n chat|[Cc]ontroller|[Mm]anual).*$/;
 const lables = {
-    "RU": '<label title="Repeating Uncoditional."><img src="/assets/repeating_command_block.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>',
-    "RC": '<label title="Repeating Coditional."><img src="/assets/repeating_command_block_conditional.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>',
-    "CU": '<label title="Chain Uncoditional."><img src="/assets/chain_command_block.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>',
-    "CC": '<label title="Chain Coditional."><img src="/assets/chain_command_block_conditional.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>',
-    "IU": '<label title="Impulse Uncoditional."><img src="/assets/command_block.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>',
-    "IC": '<label title="Impulse Coditional."><img src="/assets/command_block_conditional.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>',
-    "chat": '<label title="Without creating a command block."><img src="/assets/chat.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>'
+    "RU": '<label title="Repeating Uncoditional."><img src="./assets/repeating_command_block.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>',
+    "RC": '<label title="Repeating Coditional."><img src="./assets/repeating_command_block_conditional.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>',
+    "CU": '<label title="Chain Uncoditional."><img src="./assets/chain_command_block.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>',
+    "CC": '<label title="Chain Coditional."><img src="./assets/chain_command_block_conditional.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>',
+    "IU": '<label title="Impulse Uncoditional."><img src="./assets/command_block.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>',
+    "IC": '<label title="Impulse Coditional."><img src="./assets/command_block_conditional.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>',
+    "chat": '<label title="Without creating a command block."><img src="./assets/chat.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>'
 };
 
 function gallabLineNumbers(lineNumber) {
@@ -467,7 +467,7 @@ function gallabLineNumbers(lineNumber) {
 
     const sign_line = line_text.match(/\[(.*_?sign)\]/)
     if (sign_line) {
-        return `<label title="The function will be run once when the world is loaded."><img src="/assets/${sign_line[1]}.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>`;
+        return `<label title="The function will be run once when the world is loaded."><img src="./assets/${sign_line[1]}.png" width="16" height="16" style="transform: translateY(4px) scale(1.375)"></label>`;
     }
 
     if (all_commands_types.test(line_text) || !line_text || /^#/.test(line_text)) {
