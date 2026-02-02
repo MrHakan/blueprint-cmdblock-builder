@@ -141,7 +141,7 @@ say Tick 3
 
 1.  Run `npm install`.
 2.  Run `npm start` (or `node server.js`).
-3.  Open `http://localhost:3000/main.html`.
+3.  Open `http://localhost:3000/cba.html`.
 
 ## Support
 

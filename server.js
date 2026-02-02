@@ -110,7 +110,7 @@ app.get('/', (req, res) => {
 
 // Command Block Assembler (alias)
 app.get('/cba', (req, res) => {
-    res.sendFile(path.join(__dirname, 'main.html'));
+    res.sendFile(path.join(__dirname, 'cba.html'));
 });
 
 // Blueprint Editor Route

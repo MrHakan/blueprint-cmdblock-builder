@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https: 'unsafe-inline' 'unsafe-eval' data: blob:;">
     <base href="/blueprint-cmdblock-builder/">
     <title>Command Block Assembler by GalSergey</title>
     <link rel="icon" href="https://styles.redditmedia.com/t5_6aviyc/styles/profileIcon_msenduashsw81.jpg"
@@ -92,16 +94,17 @@
     <header>
         <div class="links">
             <div class="icon">
-                <a href="./">
+                <a href="./index.html">
                     <img src="./assets/skin.png" class="skin">
                     <img src="./assets/glasses.png" class="glasses">
                 </a>
             </div>
             <nav class="header-links">
                 <a href="./">Datapack Assembler</a>
-                <a style="color: white">Command Block Assembler</a>
-                <a href="./blueprint" style="color: #4a9eff">Blueprint Editor</a>
-                <a href="./item">Item Components Viewer</a>
+                <a href="./index.html">Datapack Assembler</a>
+                <a href="./blueprint.html" style="color: #4a9eff">Blueprint Editor</a>
+                <a href="./item" style="cursor: not-allowed; opacity: 0.5; pointer-events: none;">Item Components
+                    Viewer</a>
             </nav>
         </div>
         <div class="library">
@@ -943,7 +946,7 @@
     </style>
 
     <!-- Open in Blueprint Button -->
-    <a href="./blueprint" class="blueprint-link" id="blueprintLink" title="Open in Blueprint Editor">
+    <a href="./blueprint.html" class="blueprint-link" id="blueprintLink" title="Open in Blueprint Editor">
         <span>📐</span>
         <span>Open in Blueprint</span>
     </a>
